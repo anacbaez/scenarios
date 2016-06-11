@@ -13,7 +13,7 @@ def walk_folder(folder_name):
     """
     for file_name in os.listdir(folder_name):
         if file_name.endswith(".txt"):
-            yield file_name
+            yield os.path.join(folder_name, file_name)
 
 
 def parse_ids(id_file_name):
@@ -48,11 +48,12 @@ if __name__ == '__main__':
 
     for file_name in walk_folder(folder_name):
         ids_df = parse_ids(file_name)
-        ids_df['scenario_name'] = file_name.split('.')[0]
+        ids_df['Scenario_Name'] = os.path.basename(file_name).split('.')[0]
         main_df = pd.concat([main_df, ids_df], ignore_index=True)
 
     output_name = "{}_parsed_ids.csv".format(folder_name)
-    # main_df.to_csv('parsed_ids_example.csv', index=False)
+
+    main_df.to_csv(os.path.join(folder_name, output_name), index=False)
 
 
 

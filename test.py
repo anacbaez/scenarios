@@ -4,36 +4,32 @@ import pandas as pd
 import sys
 import json
 
-# def init():
 
-def parse_ids(id_file_name):
-    """parse ids from text file"""
-    with open(id_file_name, 'r') as f:
-        all_ids = f.read()
-
-    all_ids = all_ids.split(',')
-    id_dict = {}
-    for i in all_ids:
-        id_dict[i.split(' :')[1].strip()] = i.split(' :')[0].strip()
-    scenario_labels = []
-
-    df = pd.DataFrame(list(id_dict.items()), columns=['Unique_ID', 'Message_ID'])
-    return df
-
-def stats_table():
-    pass
-
-def add_stat(stats, stat_name, value):
+def flag_noise(scenario_df, noise_df):
     """
-    Add stat to the stats dictionary
-    :param stat_name:
-    :return: stats
+    returns a the scenario dataframe with an appended noise flag
+    1 indicates the entry is noise
+    0 indicates the entry is not noise
+    :param scenario_df: scenario dataframe with columns ('Unique_ID', 'Content_ID', 'Scenario_Name')
+    :param noise_df:
+    :return scenario_df:
     """
-    stats.set_default(stat_name, [])
-    stats[stat_name].append(value)
-    return stats
+    noise_df['noise_flag'] = 1
 
-def analytics():
+    scenario_df = scenario_df.merge(noise_df[['Unique_ID', 'noise_flag']], on=["Unique_ID"], how="left")
+    scenario_df['noise_flag'].fillna(0, inplace=True)
+
+    return scenario_df
+
+
+def analytics(scenarios_df, master_df):
+    """
+    PERFORMS ANALYTICS AND WRITES TO FILE
+    
+    :param scenarios_df:
+    :param master_df:
+    :return:
+    """
 
     #load parsed file
     master = pd.read_csv('master_table_100616.csv')
@@ -111,4 +107,9 @@ def analytics():
 
 if __name__ == '__main__':
 
-    analytics()
+    scenario_df = pd.read_csv("scenario1/scenario1_parsed_ids.csv")
+    total_emails_df = pd.read_excel('master_table_110616.xls', sheetname='Total_Emails')
+    noise_df = pd.read_excel('master_table_110616.xls', sheetname='Noise_Ids')
+
+    scenario_df = flag_noise(scenario_df, noise_df)
+    # analytics()
